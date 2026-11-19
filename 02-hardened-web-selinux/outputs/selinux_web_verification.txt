@@ -1,0 +1,57 @@
+=== 1. SELinux Mode ===
+Enforcing
+
+=== 2. Persistent SELinux File Contexts ===
+SELinux fcontext                                   type               Context
+
+/srv/app-data/www(/.*)?                            all files          system_u:object_r:httpd_sys_content_t:s0 
+unconfined_u:object_r:httpd_sys_content_t:s0 /srv/app-data/www
+unconfined_u:object_r:httpd_sys_content_t:s0 /srv/app-data/www/index.html
+
+=== 3. Persistent SELinux Port Labels ===
+SELinux Port Type              Proto    Port Number
+
+http_port_t                    tcp      8080
+
+=== 4. Firewalld Active Rules ===
+public (default, active)
+  target: default
+  ingress-priority: 0
+  egress-priority: 0
+  icmp-block-inversion: no
+  interfaces: ens160
+  sources: 
+  services: cockpit dhcpv6-client ssh
+  ports: 8080/tcp
+  protocols: 
+  forward: yes
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+
+=== 5. Systemd Hardened Service Status ===
+● app-web.service - Hardened Staging Web Server (Port 8080)
+     Loaded: loaded (/etc/systemd/system/app-web.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-11-19 05:03:24 EST; 2min 25s ago
+ Invocation: 10cb116d2d7543d6860d4770d310552b
+   Main PID: 2913 (python3.12)
+      Tasks: 1 (limit: 22796)
+     Memory: 9.9M (peak: 10.2M)
+        CPU: 762ms
+     CGroup: /system.slice/app-web.service
+             └─2913 /usr/bin/python3.12 -m http.server 8080 --bind 0.0.0.0
+
+Nov 19 05:03:24 localhost.localdomain systemd[1]: Started app-web.service - Hardened Staging Web Server (Port 8080).
+Nov 19 05:03:30 localhost.localdomain python3.12[2913]: 127.0.0.1 - - [19/Nov/2026 05:03:30] "GET / HTTP/1.1" 200 -
+
+=== 6. HTTP Endpoint Verification ===
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.12.13
+Date: Thu, 19 Nov 2026 10:05:49 GMT
+Content-type: text/html
+Content-Length: 56
+Last-Modified: Thu, 19 Nov 2026 09:12:42 GMT
+
+<h1>Rocky Linux 10 Hardened Web Server - Port 8080</h1>
