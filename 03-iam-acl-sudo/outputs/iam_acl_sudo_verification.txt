@@ -1,0 +1,66 @@
+=== 1. User & Group Identity ===
+uid=1001(alice_ops) gid=1003(alice_ops) groups=1003(alice_ops),1001(devops)
+uid=1002(bob_auditor) gid=1004(bob_auditor) groups=1004(bob_auditor),1002(sec_audit)
+
+=== 2. Password Aging Policy (alice_ops) ===
+
+=== 3. Collaborative Directory & Inherited File ACLs ===
+drwxrwsr-x+ 2 root devops 28 Nov 23 03:48 /srv/app-data/releases
+# file: srv/app-data/releases
+# owner: root
+# group: devops
+# flags: -s-
+user::rwx
+user:bob_auditor:r-x
+group::rwx
+group:devops:rwx
+mask::rwx
+other::r-x
+default:user::rwx
+default:user:bob_auditor:r-x
+default:group::rwx
+default:group:devops:rwx
+default:mask::rwx
+default:other::r-x
+
+-rw-rw-r--+ 1 alice_ops devops 24 Nov 23 04:49 /srv/app-data/releases/release-v1.txt
+# file: srv/app-data/releases/release-v1.txt
+# owner: alice_ops
+# group: devops
+user::rw-
+user:bob_auditor:r-x	#effective:r--
+group::rwx	#effective:rw-
+group:devops:rwx	#effective:rw-
+mask::rw-
+other::r--
+
+
+=== 4. Sudoers Drop-In Validation & User Privileges ===
+/etc/sudoers.d/app-operations: parsed OK
+Matching Defaults entries for alice_ops on localhost:
+    !visiblepw, always_set_home, match_group_by_gid, always_query_group_plugin,
+    env_reset, env_keep="COLORS DISPLAY HOSTNAME HISTSIZE KDEDIR LS_COLORS",
+    env_keep+="MAIL PS1 PS2 QTDIR USERNAME LANG LC_ADDRESS LC_CTYPE",
+    env_keep+="LC_COLLATE LC_IDENTIFICATION LC_MEASUREMENT LC_MESSAGES",
+    env_keep+="LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER LC_TELEPHONE",
+    env_keep+="LC_TIME LC_ALL LANGUAGE LINGUAS _XKB_CHARSET XAUTHORITY",
+    secure_path=/sbin\:/bin\:/usr/sbin\:/usr/bin
+
+User alice_ops may run the following commands on localhost:
+    (root) NOPASSWD: /usr/bin/systemctl status app-web.service,
+        /usr/bin/systemctl status app-web.service --no-pager,
+        /usr/bin/systemctl restart app-web.service, /usr/bin/systemctl reload
+        app-web.service
+Matching Defaults entries for bob_auditor on localhost:
+    !visiblepw, always_set_home, match_group_by_gid, always_query_group_plugin,
+    env_reset, env_keep="COLORS DISPLAY HOSTNAME HISTSIZE KDEDIR LS_COLORS",
+    env_keep+="MAIL PS1 PS2 QTDIR USERNAME LANG LC_ADDRESS LC_CTYPE",
+    env_keep+="LC_COLLATE LC_IDENTIFICATION LC_MEASUREMENT LC_MESSAGES",
+    env_keep+="LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER LC_TELEPHONE",
+    env_keep+="LC_TIME LC_ALL LANGUAGE LINGUAS _XKB_CHARSET XAUTHORITY",
+    secure_path=/sbin\:/bin\:/usr/sbin\:/usr/bin
+
+User bob_auditor may run the following commands on localhost:
+    (root) NOPASSWD: /usr/bin/systemctl status app-web.service,
+        /usr/bin/systemctl status app-web.service --no-pager,
+        /usr/bin/journalctl -u app-web.service --no-pager
